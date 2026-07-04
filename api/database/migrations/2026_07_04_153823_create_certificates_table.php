@@ -12,8 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('certificates', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('enrollment_id')->constrained('enrollments')->cascadeOnDelete();
+            $table->uuid('public_code')->unique();
+            $table->string('status')->default('valid');
+            $table->timestamp('revoked_at')->nullable();
+            $table->string('revocation_reason')->nullable();
+            $table->timestamp('issued_at');
             $table->timestamps();
+            $table->unique('enrollment_id');
         });
     }
 

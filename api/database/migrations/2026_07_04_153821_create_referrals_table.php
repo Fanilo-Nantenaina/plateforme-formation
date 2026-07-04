@@ -12,8 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('referrals', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('referrer_id')->constrained('accounts')->cascadeOnDelete();
+            $table->foreignUuid('referred_id')->constrained('accounts')->cascadeOnDelete();
+            $table->foreignUuid('center_id')->constrained('centers')->cascadeOnDelete();
+            $table->boolean('rewarded')->default(false);
+            $table->timestamp('rewarded_at')->nullable();
             $table->timestamps();
+            $table->unique(['referred_id', 'center_id']);
         });
     }
 

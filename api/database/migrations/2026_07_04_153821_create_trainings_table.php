@@ -11,8 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('roles', function (Blueprint $table) {
-            $table->id();
+        Schema::create('trainings', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('title');
+            $table->text('description')->nullable();
+            $table->foreignUuid('center_id')->constrained('centers')->cascadeOnDelete();
             $table->timestamps();
         });
     }
@@ -22,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('roles');
+        Schema::dropIfExists('trainings');
     }
 };
