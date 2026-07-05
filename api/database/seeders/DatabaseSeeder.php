@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
+use App\Models\Center;
+use App\Models\Role;
+use App\Models\Training;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -15,11 +17,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $apprenant = Role::create(['name' => 'apprenant']);
+        $formateur = Role::create(['name' => 'formateur']);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        $centre = Center::create(['name' => 'Centre Dakar', 'city' => 'Dakar']);
+
+        Training::create([
+            'title' => 'Développement web',
+            'description' => 'HTML, CSS, JS',
+            'center_id' => $centre->id,
         ]);
     }
 }

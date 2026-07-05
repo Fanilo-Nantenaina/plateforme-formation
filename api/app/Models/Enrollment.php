@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
 #[Fillable(['account_id', 'training_id', 'status', 'completed_at'])]
 class Enrollment extends Model
 {
+    use HasUuids;
     public function account()
     {
         return $this->belongsTo(Account::class);
