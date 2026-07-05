@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AccountController;
 
 Route::post('/accounts', [AccountController::class, 'store']);
+Route::post('/accounts/{account}/roles', [AccountController::class, 'attachRole']);
+
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
