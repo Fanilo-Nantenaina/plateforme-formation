@@ -2,9 +2,19 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 class Role extends Model
 {
-    //
+    use HasUuids;
+
+    protected $fillable = ['name'];
+
+    public function accounts()
+    {
+        return $this->belongsToMany(Account::class, 'account_role')
+            ->withPivot('center_id')
+            ->withTimestamps();
+    }
 }
