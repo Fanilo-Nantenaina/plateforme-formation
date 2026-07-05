@@ -12,7 +12,7 @@ class StoreAccountRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,7 +23,9 @@ class StoreAccountRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'full_name' => ['required', 'string', 'max:255'],
+            'phone'     => ['required', 'string', 'unique:accounts,phone'],
+            'password'  => ['required', 'string', 'min:8'],
         ];
     }
 }
