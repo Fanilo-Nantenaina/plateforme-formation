@@ -36,8 +36,8 @@ class Account extends Authenticatable
     public function hasRole(string $roleName, ?string $centerId = null): bool
     {
         return $this->roles()
-            ->where('name', $roleName)
-            ->when($centerId, fn($q) => $q->wherePivot('center_id', $centerId))
+            ->where('roles.name', $roleName)
+            ->when($centerId, fn($q) => $q->where('account_role.center_id', $centerId))
             ->exists();
     }
 }
