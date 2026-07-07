@@ -1,0 +1,31 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Foundation\Http\FormRequest;
+
+class StoreReferralRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'referrer_id' => ['required', 'uuid', 'exists:accounts,id', 'different:referred_id'],
+            'referred_id' => ['required', 'uuid', 'exists:accounts,id'],
+            'center_id'   => ['required', 'uuid', 'exists:centers,id'],
+        ];
+    }
+}

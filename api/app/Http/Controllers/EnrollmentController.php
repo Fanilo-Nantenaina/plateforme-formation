@@ -6,6 +6,7 @@ use App\Http\Requests\StoreEnrollmentRequest;
 use App\Http\Resources\EnrollmentResource;
 use App\Models\Account;
 use App\Models\Enrollment;
+use App\Models\Referral;
 use App\Models\Training;
 use Illuminate\Http\Request;
 
@@ -27,6 +28,19 @@ class EnrollmentController extends Controller
             'training_id' => $training->id,
             'status'      => 'active',
         ]);
+
+        $referral = Referral::where('referred_id', $account->id)
+            ->where('center_id', $training->center_id)
+            ->where('rewarded', false)
+            ->first();
+
+        if ($referral) {
+            $referral->update([
+                'rewarded'    => true,
+                'rewarded_at' => now(),
+            ]);
+            // Ici : logique de récompense réelle (crédit, points…). Hors périmètre du test.
+        }
 
         return new EnrollmentResource($enrollment);
     }
