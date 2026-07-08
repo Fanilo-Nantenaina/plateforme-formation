@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\CertificateRevocationController;
 use App\Http\Controllers\CertificateVerificationController;
 use App\Http\Controllers\EnrollmentCompletionController;
 use App\Http\Controllers\EnrollmentController;
@@ -16,6 +17,7 @@ Route::post('/enrollments', [EnrollmentController::class, 'store']);
 Route::post('/enrollments/{enrollment}/complete', [EnrollmentCompletionController::class, 'store']);
 Route::get('/verify/{code}', [CertificateVerificationController::class, 'show']);
 Route::post('/referrals', [ReferralController::class, 'store']);
+Route::post('/certificates/{certificate}/revoke', [CertificateRevocationController::class, 'store']);
 
 Route::get('/user', function (Request $request) {
     return $request->user();
