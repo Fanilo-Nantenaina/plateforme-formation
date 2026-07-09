@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CertificateRevocationController;
 use App\Http\Controllers\CertificateVerificationController;
 use App\Http\Controllers\EnrollmentCompletionController;
@@ -18,6 +19,11 @@ Route::post('/enrollments/{enrollment}/complete', [EnrollmentCompletionControlle
 Route::get('/verify/{code}', [CertificateVerificationController::class, 'show']);
 Route::post('/referrals', [ReferralController::class, 'store']);
 Route::post('/certificates/{certificate}/revoke', [CertificateRevocationController::class, 'store']);
+Route::post('/login', [AuthController::class, 'login']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/me', [AuthController::class, 'me']);
+});
 
 Route::get('/user', function (Request $request) {
     return $request->user();
