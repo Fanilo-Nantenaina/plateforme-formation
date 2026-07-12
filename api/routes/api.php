@@ -20,6 +20,7 @@ Route::get('/verify/{code}', [CertificateVerificationController::class, 'show'])
 Route::post('/referrals', [ReferralController::class, 'store']);
 Route::post('/certificates/{certificate}/revoke', [CertificateRevocationController::class, 'store']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
