@@ -1,14 +1,26 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useAuth } from "../auth/AuthContext";
 
-export const Route = createFileRoute('/')({ component: Home })
+export const Route = createFileRoute("/")({ component: IndexPage });
 
-function Home() {
+function IndexPage() {
+  const { account, loading } = useAuth();
+
+  if (loading) return <p style={{ padding: 24 }}>Chargement…</p>;
+
   return (
-    <div className="p-8">
-      <h1 className="text-4xl font-bold">Welcome to TanStack Start</h1>
-      <p className="mt-4 text-lg">
-        Edit <code>src/routes/index.tsx</code> to get started.
-      </p>
+    <div style={{ padding: 24, fontFamily: "system-ui", maxWidth: 480 }}>
+      <h1>Plateforme de formation</h1>
+      {account ? (
+        <p>
+          Connecté en tant que <strong>{account.full_name}</strong>.{" "}
+          <Link to="/trainings">Voir le catalogue →</Link>
+        </p>
+      ) : (
+        <p>
+          <Link to="/login">Se connecter</Link> pour accéder au catalogue.
+        </p>
+      )}
     </div>
-  )
+  );
 }

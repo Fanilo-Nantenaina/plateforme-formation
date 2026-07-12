@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthContext";
@@ -54,10 +54,16 @@ function TrainingsPage() {
             }}
           >
             <strong>{t.title}</strong>
-            <p style={{ color: "#666", margin: "4px 0 0" }}>{t.description}</p>
-            <a href={`/trainings/${t.id}`} style={{ fontSize: 14 }}>
+            <p style={{ color: "#666", margin: "4px 0 8px" }}>
+              {t.description}
+            </p>
+            <Link
+              to="/trainings/$id"
+              params={{ id: t.id }}
+              style={{ fontSize: 14 }}
+            >
               Voir la formation →
-            </a>
+            </Link>
           </li>
         ))}
       </ul>

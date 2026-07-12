@@ -7,8 +7,8 @@ import {
   type ReactNode,
 } from "react";
 
-type Role = { name: string; center_id: string };
-type Account = { id: string; full_name: string; phone: string };
+export type Role = { name: string; center_id: string };
+export type Account = { id: string; full_name: string; phone: string };
 
 type AuthState = {
   account: Account | null;

@@ -1,4 +1,4 @@
-async function getCsrfCookie() {
+async function getCsrfCookie(): Promise<void> {
   await fetch("/sanctum/csrf-cookie", { credentials: "include" });
 }
 
@@ -24,6 +24,7 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
     throw new Error(error.message ?? `Erreur ${res.status}`);
   }
 
+  if (res.status === 204) return null;
   return res.json();
 }
 

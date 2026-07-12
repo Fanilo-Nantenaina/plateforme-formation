@@ -10,6 +10,7 @@ use App\Http\Controllers\EnrollmentCompletionController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\ReferralController;
 use App\Http\Controllers\TrainingController;
+use App\Http\Controllers\TrainingEnrollmentsController;
 
 Route::post('/accounts', [AccountController::class, 'store']);
 Route::post('/accounts/{account}/roles', [AccountController::class, 'attachRole']);
@@ -24,6 +25,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanc
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
+});
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/trainings/{training}/enrollments', [TrainingEnrollmentsController::class, 'index']);
 });
 
 Route::get('/user', function (Request $request) {
