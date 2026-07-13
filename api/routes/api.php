@@ -5,10 +5,12 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CenterController;
+use App\Http\Controllers\CertificateAdminController;
 use App\Http\Controllers\CertificateRevocationController;
 use App\Http\Controllers\CertificateVerificationController;
 use App\Http\Controllers\EnrollmentCompletionController;
 use App\Http\Controllers\EnrollmentController;
+use App\Http\Controllers\MeEnrollmentsController;
 use App\Http\Controllers\MeRoleController;
 use App\Http\Controllers\ReferralController;
 use App\Http\Controllers\TrainingController;
@@ -34,6 +36,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/centers', [CenterController::class, 'index']);
     Route::get('/accounts', [AccountController::class, 'index']);
     Route::post('/me/roles', [MeRoleController::class, 'store']);
+
+    Route::get('/me/enrollments', [MeEnrollmentsController::class, 'index']);
+    Route::get('/admin/certificates', [CertificateAdminController::class, 'index']);
 });
 
 Route::get('/user', function (Request $request) {

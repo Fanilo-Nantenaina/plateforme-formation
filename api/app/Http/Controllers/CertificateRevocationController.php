@@ -10,6 +10,11 @@ class CertificateRevocationController extends Controller
 {
     public function store(RevokeCertificateRequest $request, Certificate $certificate)
     {
+        $centerId = $certificate->enrollment->training->center_id;
+        if (! $request->user()->hasRole('admin', $centerId)) {
+            return response()->json(['message' => "Seul un administrateur du centre peut révoquer."], 403);
+        }
+
         if ($certificate->status === 'revoked') {
             return response()->json([
                 'message'     => 'Ce certificat est déjà révoqué.',

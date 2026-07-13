@@ -1,10 +1,16 @@
 import { Link, useNavigate } from "@tanstack/react-router";
+import { Moon, Sun } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "./ThemeProvider";
 
 export function Header() {
-  const { account, signOut } = useAuth();
+  const { account, roles, signOut } = useAuth();
+  const { theme, toggle } = useTheme();
   const navigate = useNavigate();
+
+  const isAdminSomewhere = roles.some((r) => r.name === "admin");
+  const isApprenantSomewhere = roles.some((r) => r.name === "apprenant");
 
   async function handleSignOut() {
     await signOut();
@@ -26,17 +32,45 @@ export function Header() {
               >
                 Catalogue
               </Link>
+              {isApprenantSomewhere && (
+                <Link
+                  to="/my-trainings"
+                  className="transition-colors hover:text-foreground"
+                >
+                  Mes formations
+                </Link>
+              )}
               <Link
                 to="/referral"
                 className="transition-colors hover:text-foreground"
               >
                 Parrainer
               </Link>
+              {isAdminSomewhere && (
+                <Link
+                  to="/admin"
+                  className="transition-colors hover:text-foreground"
+                >
+                  Administration
+                </Link>
+              )}
             </nav>
           )}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggle}
+            aria-label="Basculer le thème"
+          >
+            {theme === "dark" ? (
+              <Sun className="h-4 w-4" />
+            ) : (
+              <Moon className="h-4 w-4" />
+            )}
+          </Button>
           {account ? (
             <>
               <span className="hidden text-sm text-muted-foreground sm:inline">

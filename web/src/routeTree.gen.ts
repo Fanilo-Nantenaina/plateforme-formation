@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TrainingsRouteImport } from './routes/trainings'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ReferralRouteImport } from './routes/referral'
+import { Route as MyTrainingsRouteImport } from './routes/my-trainings'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TrainingsIdRouteImport } from './routes/trainings_.$id'
 
@@ -31,9 +33,19 @@ const ReferralRoute = ReferralRouteImport.update({
   path: '/referral',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MyTrainingsRoute = MyTrainingsRouteImport.update({
+  id: '/my-trainings',
+  path: '/my-trainings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -49,7 +61,9 @@ const TrainingsIdRoute = TrainingsIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/login': typeof LoginRoute
+  '/my-trainings': typeof MyTrainingsRoute
   '/referral': typeof ReferralRoute
   '/register': typeof RegisterRoute
   '/trainings': typeof TrainingsRoute
@@ -57,7 +71,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/login': typeof LoginRoute
+  '/my-trainings': typeof MyTrainingsRoute
   '/referral': typeof ReferralRoute
   '/register': typeof RegisterRoute
   '/trainings': typeof TrainingsRoute
@@ -66,7 +82,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/login': typeof LoginRoute
+  '/my-trainings': typeof MyTrainingsRoute
   '/referral': typeof ReferralRoute
   '/register': typeof RegisterRoute
   '/trainings': typeof TrainingsRoute
@@ -75,14 +93,30 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/login' | '/referral' | '/register' | '/trainings' | '/trainings/$id'
+    | '/'
+    | '/admin'
+    | '/login'
+    | '/my-trainings'
+    | '/referral'
+    | '/register'
+    | '/trainings'
+    | '/trainings/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
-    '/' | '/login' | '/referral' | '/register' | '/trainings' | '/trainings/$id'
+    | '/'
+    | '/admin'
+    | '/login'
+    | '/my-trainings'
+    | '/referral'
+    | '/register'
+    | '/trainings'
+    | '/trainings/$id'
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/login'
+    | '/my-trainings'
     | '/referral'
     | '/register'
     | '/trainings'
@@ -91,7 +125,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   LoginRoute: typeof LoginRoute
+  MyTrainingsRoute: typeof MyTrainingsRoute
   ReferralRoute: typeof ReferralRoute
   RegisterRoute: typeof RegisterRoute
   TrainingsRoute: typeof TrainingsRoute
@@ -121,11 +157,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReferralRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/my-trainings': {
+      id: '/my-trainings'
+      path: '/my-trainings'
+      fullPath: '/my-trainings'
+      preLoaderRoute: typeof MyTrainingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -147,7 +197,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   LoginRoute: LoginRoute,
+  MyTrainingsRoute: MyTrainingsRoute,
   ReferralRoute: ReferralRoute,
   RegisterRoute: RegisterRoute,
   TrainingsRoute: TrainingsRoute,

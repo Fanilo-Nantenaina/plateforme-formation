@@ -30,15 +30,26 @@ type Training = {
   description: string | null;
   center_id: string;
 };
+type MyEnrollment = {
+  enrollment_id: string;
+  training_id: string;
+  status: "active" | "completed";
+  public_code: string | null;
+};
 
 function TrainingDetail() {
   const { id } = useParams({ from: "/trainings_/$id" });
   const { account, hasRole, refresh } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data, isLoading, error } = useQuery({
+  const trainings = useQuery({
     queryKey: ["trainings"],
     queryFn: () => apiFetch("/trainings"),
+  });
+
+  const myEnrollments = useQuery({
+    queryKey: ["me", "enrollments"],
+    queryFn: () => apiFetch("/me/enrollments"),
   });
 
   const enroll = useMutation({
@@ -47,8 +58,10 @@ function TrainingDetail() {
         method: "POST",
         body: JSON.stringify({ account_id: account!.id, training_id: id }),
       }),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["enrollments", id] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["me", "enrollments"] });
+      queryClient.invalidateQueries({ queryKey: ["enrollments", id] });
+    },
   });
 
   const joinCenter = useMutation({
@@ -60,9 +73,9 @@ function TrainingDetail() {
     onSuccess: () => refresh(),
   });
 
-  if (isLoading) return <Loader />;
+  if (trainings.isLoading || myEnrollments.isLoading) return <Loader />;
 
-  if (error) {
+  if (trainings.error) {
     return (
       <Alert variant="destructive">
         <AlertDescription>
@@ -78,7 +91,7 @@ function TrainingDetail() {
     );
   }
 
-  const training: Training | undefined = data?.data?.find(
+  const training: Training | undefined = trainings.data?.data?.find(
     (t: Training) => t.id === id,
   );
 
@@ -100,6 +113,10 @@ function TrainingDetail() {
 
   const estFormateur = hasRole("formateur", training.center_id);
   const estApprenant = hasRole("apprenant", training.center_id);
+
+  const mine: MyEnrollment | undefined = myEnrollments.data?.data?.find(
+    (e: MyEnrollment) => e.training_id === id,
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -135,18 +152,12 @@ function TrainingDetail() {
           <CardHeader>
             <CardTitle className="text-lg">Inscription</CardTitle>
             <CardDescription>
-              Inscrivez-vous à cette formation. Un certificat vérifiable sera
-              émis à la fin.
+              Un certificat vérifiable publiquement est émis à la fin de la
+              formation.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
-            {enroll.isSuccess ? (
-              <Alert>
-                <AlertDescription>
-                  ✓ Inscription réussie. Bonne formation !
-                </AlertDescription>
-              </Alert>
-            ) : (
+            {!mine && (
               <>
                 <Button
                   onClick={() => enroll.mutate()}
@@ -168,6 +179,36 @@ function TrainingDetail() {
                 )}
               </>
             )}
+
+            {mine?.status === "active" && (
+              <Alert>
+                <AlertDescription>
+                  ✓ Vous êtes inscrit. Formation en cours — votre certificat
+                  sera émis à la fin par le formateur.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {mine?.status === "completed" && (
+              <div className="flex flex-col gap-3">
+                <Alert>
+                  <AlertDescription>
+                    🎓 Formation terminée. Votre certificat est disponible.
+                  </AlertDescription>
+                </Alert>
+                {mine.public_code && (
+                  <Button asChild variant="outline" className="w-fit">
+                    <a
+                      href={`/verify/${mine.public_code}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Voir mon certificat ↗
+                    </a>
+                  </Button>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -177,8 +218,8 @@ function TrainingDetail() {
           <CardHeader>
             <CardTitle className="text-lg">Rejoindre ce centre</CardTitle>
             <CardDescription>
-              Vous n'avez pas encore de rôle dans ce centre. Rejoignez-le comme
-              apprenant pour pouvoir vous inscrire à ses formations.
+              Rejoignez ce centre comme apprenant pour pouvoir vous inscrire à
+              ses formations.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
@@ -235,20 +276,20 @@ function FormateurPanel({ trainingId }: { trainingId: string }) {
       <CardHeader>
         <CardTitle className="text-lg">Espace formateur — inscrits</CardTitle>
         <CardDescription>
-          Terminez une formation pour émettre automatiquement le certificat de
+          Terminer une formation émet automatiquement le certificat de
           l'apprenant.
         </CardDescription>
       </CardHeader>
       <CardContent>
         {isLoading ? (
           <Loader label="Chargement des inscrits…" />
-        ) : data?.data?.length === 0 ? (
+        ) : !data?.data?.length ? (
           <p className="text-sm text-muted-foreground">
             Aucun inscrit pour l'instant.
           </p>
         ) : (
           <ul className="divide-y">
-            {(data?.data as EnrollmentRow[] | undefined)?.map((e) => (
+            {(data.data as EnrollmentRow[]).map((e) => (
               <li
                 key={e.enrollment_id}
                 className="flex items-center justify-between gap-4 py-3"

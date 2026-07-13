@@ -23,7 +23,7 @@ class AttachRoleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'role_id'   => ['required', 'uuid', 'exists:roles,id'],
+            'role'      => ['required', 'in:apprenant,formateur'],
             'center_id' => ['required', 'uuid', 'exists:centers,id'],
         ];
     }
