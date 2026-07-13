@@ -10,6 +10,14 @@ use Illuminate\Http\Request;
 
 class AccountController extends Controller
 {
+
+    public function index(Request $request)
+    {
+        return response()->json([
+            'data' => Account::where('id', '!=', $request->user()->id)
+                ->get(['id', 'full_name']),
+        ]);
+    }
     public function store(StoreAccountRequest $request)
     {
         $account = Account::create($request->validated());

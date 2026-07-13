@@ -16,7 +16,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Loader } from "@/components/Loader";
 
-export const Route = createFileRoute("/trainings/$id")({
+export const Route = createFileRoute("/trainings_/$id")({
   component: () => (
     <RequireAuth>
       <TrainingDetail />
@@ -32,8 +32,8 @@ type Training = {
 };
 
 function TrainingDetail() {
-  const { id } = useParams({ from: "/trainings/$id" });
-  const { account, hasRole } = useAuth();
+  const { id } = useParams({ from: "/trainings_/$id" });
+  const { account, hasRole, refresh } = useAuth();
   const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
@@ -49,6 +49,15 @@ function TrainingDetail() {
       }),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["enrollments", id] }),
+  });
+
+  const joinCenter = useMutation({
+    mutationFn: (centerId: string) =>
+      apiFetch("/me/roles", {
+        method: "POST",
+        body: JSON.stringify({ center_id: centerId }),
+      }),
+    onSuccess: () => refresh(),
   });
 
   if (isLoading) return <Loader />;
@@ -164,12 +173,35 @@ function TrainingDetail() {
       )}
 
       {!estFormateur && !estApprenant && (
-        <Alert>
-          <AlertDescription>
-            Vous n'avez pas de rôle dans le centre de cette formation.
-            Rapprochez-vous du centre pour obtenir un accès.
-          </AlertDescription>
-        </Alert>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Rejoindre ce centre</CardTitle>
+            <CardDescription>
+              Vous n'avez pas encore de rôle dans ce centre. Rejoignez-le comme
+              apprenant pour pouvoir vous inscrire à ses formations.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            <Button
+              onClick={() => joinCenter.mutate(training.center_id)}
+              disabled={joinCenter.isPending}
+              className="w-fit"
+            >
+              {joinCenter.isPending
+                ? "Adhésion…"
+                : "Rejoindre ce centre comme apprenant"}
+            </Button>
+            {joinCenter.isError && (
+              <Alert variant="destructive">
+                <AlertDescription>
+                  {joinCenter.error instanceof Error
+                    ? joinCenter.error.message
+                    : "Erreur"}
+                </AlertDescription>
+              </Alert>
+            )}
+          </CardContent>
+        </Card>
       )}
     </div>
   );
@@ -210,13 +242,13 @@ function FormateurPanel({ trainingId }: { trainingId: string }) {
       <CardContent>
         {isLoading ? (
           <Loader label="Chargement des inscrits…" />
-        ) : data.data.length === 0 ? (
+        ) : data?.data?.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             Aucun inscrit pour l'instant.
           </p>
         ) : (
           <ul className="divide-y">
-            {(data.data as EnrollmentRow[]).map((e) => (
+            {(data?.data as EnrollmentRow[] | undefined)?.map((e) => (
               <li
                 key={e.enrollment_id}
                 className="flex items-center justify-between gap-4 py-3"

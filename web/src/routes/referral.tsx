@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/auth/AuthContext";
 import { RequireAuth } from "@/auth/RequireAuth";
@@ -12,9 +12,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Loader } from "@/components/Loader";
 
 export const Route = createFileRoute("/referral")({
   component: () => (
@@ -24,10 +31,23 @@ export const Route = createFileRoute("/referral")({
   ),
 });
 
+type AccountOption = { id: string; full_name: string };
+type CenterOption = { id: string; name: string; city: string | null };
+
 function ReferralPage() {
   const { account } = useAuth();
   const [referredId, setReferredId] = useState("");
   const [centerId, setCenterId] = useState("");
+
+  // Les deux listes qui alimentent les selects — plus aucun UUID à saisir.
+  const accounts = useQuery({
+    queryKey: ["accounts"],
+    queryFn: () => apiFetch("/accounts"),
+  });
+  const centers = useQuery({
+    queryKey: ["centers"],
+    queryFn: () => apiFetch("/centers"),
+  });
 
   const refer = useMutation({
     mutationFn: () =>
@@ -41,9 +61,26 @@ function ReferralPage() {
       }),
   });
 
+  if (accounts.isLoading || centers.isLoading) {
+    return <Loader label="Chargement des listes…" />;
+  }
+
+  if (accounts.error || centers.error) {
+    return (
+      <Alert variant="destructive">
+        <AlertDescription>
+          Impossible de charger les données. Réessayez.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  const accountOptions: AccountOption[] = accounts.data?.data ?? [];
+  const centerOptions: CenterOption[] = centers.data?.data ?? [];
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    refer.mutate();
+    if (referredId && centerId) refer.mutate();
   }
 
   return (
@@ -74,24 +111,42 @@ function ReferralPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="referred">Identifiant du filleul</Label>
-              <Input
-                id="referred"
-                value={referredId}
-                onChange={(e) => setReferredId(e.target.value)}
-                placeholder="UUID du compte parrainé"
-                required
-              />
+              <Label>Filleul</Label>
+              <Select value={referredId} onValueChange={setReferredId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir la personne à parrainer" />
+                </SelectTrigger>
+                <SelectContent>
+                  {accountOptions.length === 0 ? (
+                    <p className="px-3 py-2 text-sm text-muted-foreground">
+                      Aucun autre compte disponible.
+                    </p>
+                  ) : (
+                    accountOptions.map((a) => (
+                      <SelectItem key={a.id} value={a.id}>
+                        {a.full_name}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
             </div>
+
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="center">Identifiant du centre</Label>
-              <Input
-                id="center"
-                value={centerId}
-                onChange={(e) => setCenterId(e.target.value)}
-                placeholder="UUID du centre"
-                required
-              />
+              <Label>Centre</Label>
+              <Select value={centerId} onValueChange={setCenterId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir le centre" />
+                </SelectTrigger>
+                <SelectContent>
+                  {centerOptions.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                      {c.city ? ` — ${c.city}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {refer.isSuccess && (
@@ -112,7 +167,11 @@ function ReferralPage() {
               </Alert>
             )}
 
-            <Button type="submit" disabled={refer.isPending} className="w-fit">
+            <Button
+              type="submit"
+              disabled={refer.isPending || !referredId || !centerId}
+              className="w-fit"
+            >
               {refer.isPending
                 ? "Enregistrement…"
                 : "Enregistrer le parrainage"}

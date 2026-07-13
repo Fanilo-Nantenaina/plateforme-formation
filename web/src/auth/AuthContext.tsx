@@ -17,6 +17,7 @@ type AuthState = {
   signIn: (phone: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   hasRole: (name: string, centerId: string) => boolean;
+  refresh: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -56,9 +57,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return roles.some((r) => r.name === name && r.center_id === centerId);
   }
 
+  async function refresh() {
+    const data = await apiFetch("/me");
+    setAccount(data.account);
+    setRoles(data.roles ?? []);
+  }
+
   return (
     <AuthContext.Provider
-      value={{ account, roles, loading, signIn, signOut, hasRole }}
+      value={{ account, roles, loading, signIn, signOut, hasRole, refresh }}
     >
       {children}
     </AuthContext.Provider>

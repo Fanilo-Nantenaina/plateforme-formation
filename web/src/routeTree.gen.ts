@@ -14,7 +14,7 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ReferralRouteImport } from './routes/referral'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as TrainingsIdRouteImport } from './routes/trainings.$id'
+import { Route as TrainingsIdRouteImport } from './routes/trainings_.$id'
 
 const TrainingsRoute = TrainingsRouteImport.update({
   id: '/trainings',
@@ -42,9 +42,9 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const TrainingsIdRoute = TrainingsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => TrainingsRoute,
+  id: '/trainings_/$id',
+  path: '/trainings/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -52,7 +52,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/referral': typeof ReferralRoute
   '/register': typeof RegisterRoute
-  '/trainings': typeof TrainingsRouteWithChildren
+  '/trainings': typeof TrainingsRoute
   '/trainings/$id': typeof TrainingsIdRoute
 }
 export interface FileRoutesByTo {
@@ -60,7 +60,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/referral': typeof ReferralRoute
   '/register': typeof RegisterRoute
-  '/trainings': typeof TrainingsRouteWithChildren
+  '/trainings': typeof TrainingsRoute
   '/trainings/$id': typeof TrainingsIdRoute
 }
 export interface FileRoutesById {
@@ -69,8 +69,8 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/referral': typeof ReferralRoute
   '/register': typeof RegisterRoute
-  '/trainings': typeof TrainingsRouteWithChildren
-  '/trainings/$id': typeof TrainingsIdRoute
+  '/trainings': typeof TrainingsRoute
+  '/trainings_/$id': typeof TrainingsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -86,7 +86,7 @@ export interface FileRouteTypes {
     | '/referral'
     | '/register'
     | '/trainings'
-    | '/trainings/$id'
+    | '/trainings_/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -94,7 +94,8 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ReferralRoute: typeof ReferralRoute
   RegisterRoute: typeof RegisterRoute
-  TrainingsRoute: typeof TrainingsRouteWithChildren
+  TrainingsRoute: typeof TrainingsRoute
+  TrainingsIdRoute: typeof TrainingsIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -134,34 +135,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/trainings/$id': {
-      id: '/trainings/$id'
-      path: '/$id'
+    '/trainings_/$id': {
+      id: '/trainings_/$id'
+      path: '/trainings/$id'
       fullPath: '/trainings/$id'
       preLoaderRoute: typeof TrainingsIdRouteImport
-      parentRoute: typeof TrainingsRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
-
-interface TrainingsRouteChildren {
-  TrainingsIdRoute: typeof TrainingsIdRoute
-}
-
-const TrainingsRouteChildren: TrainingsRouteChildren = {
-  TrainingsIdRoute: TrainingsIdRoute,
-}
-
-const TrainingsRouteWithChildren = TrainingsRoute._addFileChildren(
-  TrainingsRouteChildren,
-)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   ReferralRoute: ReferralRoute,
   RegisterRoute: RegisterRoute,
-  TrainingsRoute: TrainingsRouteWithChildren,
+  TrainingsRoute: TrainingsRoute,
+  TrainingsIdRoute: TrainingsIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
