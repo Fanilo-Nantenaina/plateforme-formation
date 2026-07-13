@@ -1,4 +1,3 @@
-import { apiFetch, login } from "#/lib/api";
 import {
   createContext,
   useContext,
@@ -6,6 +5,7 @@ import {
   useEffect,
   type ReactNode,
 } from "react";
+import { apiFetch, login } from "@/lib/api";
 
 export type Role = { name: string; center_id: string };
 export type Account = { id: string; full_name: string; phone: string };

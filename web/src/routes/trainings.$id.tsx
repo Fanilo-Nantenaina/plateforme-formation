@@ -1,8 +1,20 @@
 import { createFileRoute, useParams, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiFetch } from "../lib/api";
-import { useAuth } from "../auth/AuthContext";
-import { RequireAuth } from "../auth/RequireAuth";
+import { apiFetch } from "@/lib/api";
+import { useAuth } from "@/auth/AuthContext";
+import { RequireAuth } from "@/auth/RequireAuth";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
+import { Loader } from "@/components/Loader";
 
 export const Route = createFileRoute("/trainings/$id")({
   component: () => (
@@ -12,23 +24,22 @@ export const Route = createFileRoute("/trainings/$id")({
   ),
 });
 
+type Training = {
+  id: string;
+  title: string;
+  description: string | null;
+  center_id: string;
+};
+
 function TrainingDetail() {
   const { id } = useParams({ from: "/trainings/$id" });
   const { account, hasRole } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["trainings"],
     queryFn: () => apiFetch("/trainings"),
   });
-
-  const training = data?.data.find((t: any) => t.id === id);
-  const estFormateur = training
-    ? hasRole("formateur", training.center_id)
-    : false;
-  const estApprenant = training
-    ? hasRole("apprenant", training.center_id)
-    : false;
 
   const enroll = useMutation({
     mutationFn: () =>
@@ -40,58 +51,137 @@ function TrainingDetail() {
       queryClient.invalidateQueries({ queryKey: ["enrollments", id] }),
   });
 
-  if (isLoading) return <p style={{ padding: 24 }}>Chargement…</p>;
-  if (!training) return <p style={{ padding: 24 }}>Formation introuvable.</p>;
+  if (isLoading) return <Loader />;
+
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertDescription>
+          Impossible de charger la formation.{" "}
+          <Link
+            to="/trainings"
+            className="font-medium underline underline-offset-4"
+          >
+            Retour au catalogue
+          </Link>
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  const training: Training | undefined = data?.data?.find(
+    (t: Training) => t.id === id,
+  );
+
+  if (!training) {
+    return (
+      <Alert>
+        <AlertDescription>
+          Formation introuvable.{" "}
+          <Link
+            to="/trainings"
+            className="font-medium underline underline-offset-4"
+          >
+            Retour au catalogue
+          </Link>
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  const estFormateur = hasRole("formateur", training.center_id);
+  const estApprenant = hasRole("apprenant", training.center_id);
 
   return (
-    <div style={{ padding: 24, fontFamily: "system-ui", maxWidth: 640 }}>
-      <Link to="/trainings" style={{ fontSize: 14 }}>
-        ← Catalogue
-      </Link>
-      <h1>{training.title}</h1>
-      <p style={{ color: "#666" }}>{training.description}</p>
+    <div className="flex flex-col gap-6">
+      <div>
+        <Link
+          to="/trainings"
+          className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          ← Catalogue
+        </Link>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+          {training.title}
+        </h1>
+        {training.description && (
+          <p className="mt-1 text-muted-foreground">{training.description}</p>
+        )}
+        <div className="mt-3 flex gap-2">
+          {estFormateur && (
+            <Badge variant="secondary">Formateur de ce centre</Badge>
+          )}
+          {estApprenant && (
+            <Badge variant="outline">Apprenant de ce centre</Badge>
+          )}
+        </div>
+      </div>
+
+      <Separator />
 
       {estFormateur && <FormateurPanel trainingId={id} />}
 
       {estApprenant && !estFormateur && (
-        <div
-          style={{
-            border: "1px solid #16a34a",
-            background: "#f0fdf4",
-            borderRadius: 12,
-            padding: 16,
-          }}
-        >
-          <strong>Espace apprenant</strong>
-          {enroll.isSuccess ? (
-            <p style={{ color: "#16a34a" }}>✓ Inscription réussie !</p>
-          ) : (
-            <>
-              <p>Vous pouvez vous inscrire à cette formation.</p>
-              <button
-                onClick={() => enroll.mutate()}
-                disabled={enroll.isPending}
-              >
-                {enroll.isPending ? "Inscription…" : "S'inscrire"}
-              </button>
-              {enroll.isError && (
-                <p style={{ color: "crimson" }}>
-                  {enroll.error instanceof Error
-                    ? enroll.error.message
-                    : "Erreur"}
-                </p>
-              )}
-            </>
-          )}
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Inscription</CardTitle>
+            <CardDescription>
+              Inscrivez-vous à cette formation. Un certificat vérifiable sera
+              émis à la fin.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            {enroll.isSuccess ? (
+              <Alert>
+                <AlertDescription>
+                  ✓ Inscription réussie. Bonne formation !
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <>
+                <Button
+                  onClick={() => enroll.mutate()}
+                  disabled={enroll.isPending}
+                  className="w-fit"
+                >
+                  {enroll.isPending
+                    ? "Inscription…"
+                    : "S'inscrire à cette formation"}
+                </Button>
+                {enroll.isError && (
+                  <Alert variant="destructive">
+                    <AlertDescription>
+                      {enroll.error instanceof Error
+                        ? enroll.error.message
+                        : "Erreur"}
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </>
+            )}
+          </CardContent>
+        </Card>
       )}
 
       {!estFormateur && !estApprenant && (
-        <p style={{ color: "#888" }}>Vous n'avez pas de rôle dans ce centre.</p>
+        <Alert>
+          <AlertDescription>
+            Vous n'avez pas de rôle dans le centre de cette formation.
+            Rapprochez-vous du centre pour obtenir un accès.
+          </AlertDescription>
+        </Alert>
       )}
     </div>
   );
 }
+
+type EnrollmentRow = {
+  enrollment_id: string;
+  account_id: string;
+  apprenant: string;
+  status: "active" | "completed";
+  public_code: string | null;
+};
 
 function FormateurPanel({ trainingId }: { trainingId: string }) {
   const queryClient = useQueryClient();
@@ -109,57 +199,70 @@ function FormateurPanel({ trainingId }: { trainingId: string }) {
   });
 
   return (
-    <div
-      style={{
-        border: "1px solid #d97706",
-        background: "#fffbeb",
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 16,
-      }}
-    >
-      <strong>Espace formateur — inscrits</strong>
-      {isLoading ? (
-        <p>Chargement des inscrits…</p>
-      ) : data.data.length === 0 ? (
-        <p style={{ color: "#888" }}>Aucun inscrit pour l'instant.</p>
-      ) : (
-        <ul style={{ listStyle: "none", padding: 0, margin: "8px 0 0" }}>
-          {data.data.map((e: any) => (
-            <li
-              key={e.enrollment_id}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                padding: "8px 0",
-                borderBottom: "1px solid #f0e5c0",
-              }}
-            >
-              <span>
-                {e.apprenant} — <em style={{ color: "#999" }}>{e.status}</em>
-              </span>
-              {e.status === "completed" ? (
-                <a
-                  href={`/verify/${e.public_code}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ fontSize: 14 }}
-                >
-                  Voir le certificat ↗
-                </a>
-              ) : (
-                <button
-                  onClick={() => complete.mutate(e.enrollment_id)}
-                  disabled={complete.isPending}
-                >
-                  Terminer &amp; certifier
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">Espace formateur — inscrits</CardTitle>
+        <CardDescription>
+          Terminez une formation pour émettre automatiquement le certificat de
+          l'apprenant.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <Loader label="Chargement des inscrits…" />
+        ) : data.data.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Aucun inscrit pour l'instant.
+          </p>
+        ) : (
+          <ul className="divide-y">
+            {(data.data as EnrollmentRow[]).map((e) => (
+              <li
+                key={e.enrollment_id}
+                className="flex items-center justify-between gap-4 py-3"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="font-medium">{e.apprenant}</span>
+                  <Badge
+                    variant={e.status === "completed" ? "default" : "secondary"}
+                  >
+                    {e.status === "completed" ? "Terminée" : "En cours"}
+                  </Badge>
+                </div>
+                {e.status === "completed" && e.public_code ? (
+                  <Button asChild variant="outline" size="sm">
+                    <a
+                      href={`/verify/${e.public_code}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Voir le certificat ↗
+                    </a>
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={() => complete.mutate(e.enrollment_id)}
+                    disabled={complete.isPending}
+                  >
+                    {complete.isPending ? "Émission…" : "Terminer & certifier"}
+                  </Button>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {complete.isError && (
+          <Alert variant="destructive" className="mt-3">
+            <AlertDescription>
+              {complete.error instanceof Error
+                ? complete.error.message
+                : "Erreur"}
+            </AlertDescription>
+          </Alert>
+        )}
+      </CardContent>
+    </Card>
   );
 }
